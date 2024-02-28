@@ -54,6 +54,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   const taskCollection = client.db("taskDb").collection("tasks");
+  const listCollection = client.db("taskDb").collection("lists");
   try {
     // jwt token
     app.post("/jwt", logger, async (req, res) => {
@@ -88,27 +89,43 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/tasks/:email" , async (req, res) => {
+    app.get("/tasks/:email", async (req, res) => {
       const email = req.params.email;
       const result = await taskCollection.find({ email: email }).toArray();
       res.send(result);
     });
 
     app.post("/tasks/:taskId/category", async (req, res) => {
-        const taskId = req.params.taskId;
-        const { category } = req.body;
-      
-        try {
-          const result = await taskCollection.updateOne(
-            { _id: new ObjectId(taskId) },
-            { $set: { category: category } }
-          );
-          res.send({ success: true, message: "Category updated successfully" });
-        } catch (error) {
-          console.error("Error updating category:", error);
-          res.status(500).send({ success: false, message: "Internal server error" });
-        }
-      });
+      const taskId = req.params.taskId;
+      const { category } = req.body;
+
+      try {
+        const result = await taskCollection.updateOne(
+          { _id: new ObjectId(taskId) },
+          { $set: { category: category } }
+        );
+        res.send({ success: true, message: "Category updated successfully" });
+      } catch (error) {
+        console.error("Error updating category:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
+
+    app.post("/lists", async (req, res) => {
+      const { tasks } = req.body;
+
+      try {
+        const result = await listCollection.insertOne({ tasks });
+        res.send({ success: true, message: "List created successfully" });
+      } catch (error) {
+        console.error("Error creating list:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
