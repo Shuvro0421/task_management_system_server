@@ -53,7 +53,7 @@ const client = new MongoClient(uri, {
 });
 
 async function run() {
-  const taskCollection = client.db("taskDb").collection("Tasks");
+  const taskCollection = client.db("taskDb").collection("tasks");
   try {
     // jwt token
     app.post("/jwt", logger, async (req, res) => {
@@ -76,17 +76,39 @@ async function run() {
       res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
 
-    app.post("/tasks" ,  async (req, res) => {
+    app.post("/tasks", async (req, res) => {
       const tasks = req.body;
       console.log(tasks);
       const result = await taskCollection.insertOne(tasks);
       res.send(result);
     });
 
-    app.get("/tasks" , async (req, res) => {
+    app.get("/tasks", async (req, res) => {
       const result = await taskCollection.find().toArray();
       res.send(result);
     });
+
+    app.get("/tasks/:email" , async (req, res) => {
+      const email = req.params.email;
+      const result = await taskCollection.find({ email: email }).toArray();
+      res.send(result);
+    });
+
+    app.post("/tasks/:taskId/category", async (req, res) => {
+        const taskId = req.params.taskId;
+        const { category } = req.body;
+      
+        try {
+          const result = await taskCollection.updateOne(
+            { _id: new ObjectId(taskId) },
+            { $set: { category: category } }
+          );
+          res.send({ success: true, message: "Category updated successfully" });
+        } catch (error) {
+          console.error("Error updating category:", error);
+          res.status(500).send({ success: false, message: "Internal server error" });
+        }
+      });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
