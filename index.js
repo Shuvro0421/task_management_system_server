@@ -10,7 +10,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 // middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173" , 'http://localhost:5174'],
+    origin: ["http://localhost:5173", "http://localhost:5174"],
     credentials: true,
   })
 );
@@ -53,6 +53,7 @@ const client = new MongoClient(uri, {
 });
 
 async function run() {
+  const taskCollection = client.db("taskDb").collection("Tasks");
   try {
     // jwt token
     app.post("/jwt", logger, async (req, res) => {
@@ -75,7 +76,17 @@ async function run() {
       res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
 
-  
+    app.post("/tasks" ,  async (req, res) => {
+      const tasks = req.body;
+      console.log(tasks);
+      const result = await taskCollection.insertOne(tasks);
+      res.send(result);
+    });
+
+    app.get("/tasks" , async (req, res) => {
+      const result = await taskCollection.find().toArray();
+      res.send(result);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
@@ -86,4 +97,3 @@ run().catch(console.dir);
 app.listen(port, () => {
   console.log("Task management system is running on port", port);
 });
-
