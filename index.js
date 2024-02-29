@@ -56,6 +56,9 @@ async function run() {
   const taskCollection = client.db("taskDb").collection("tasks");
   const listCollection = client.db("taskDb").collection("lists");
   const userCollection = client.db("taskDb").collection("users");
+  const assignedTaskCollection = client
+    .db("taskDb")
+    .collection("assignedTasks");
 
   try {
     // jwt token
@@ -146,6 +149,76 @@ async function run() {
       }
       const result = await userCollection.insertOne(user);
       res.send(result);
+    });
+
+    app.post("/make-admin", async (req, res) => {
+      const { email } = req.body;
+      // Update the user in the database to make them an admin
+      try {
+        const result = await userCollection.updateOne(
+          { email: email },
+          { $set: { isAdmin: true } }
+        );
+        res.send({ success: true, message: "User successfully made admin" });
+      } catch (error) {
+        console.error("Error making admin:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
+
+    app.post("/remove-admin", async (req, res) => {
+      const { email } = req.body;
+      // Update the user in the database to remove admin privileges
+      try {
+        const result = await userCollection.updateOne(
+          { email: email },
+          { $set: { isAdmin: false } }
+        );
+        res.send({
+          success: true,
+          message: "Admin privileges successfully removed from user",
+        });
+      } catch (error) {
+        console.error("Error removing admin privileges:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
+
+    app.post("/assign-tasks", async (req, res) => {
+      const { selectedTaskDetails, selectedUsers } = req.body;
+
+      try {
+        // Loop through selected users
+        for (const userId of selectedUsers) {
+          // Loop through selected tasks for each user
+          for (const task of selectedTaskDetails) {
+            // Construct object to insert into the database
+            const userTask = {
+              userId: userId,
+              taskId: task._id,
+              title: task.title,
+              description: task.description,
+              dueDate: task.dueDate,
+              priority: task.priority,
+              category: task.category,
+            };
+
+            // Insert the task for this user
+            await assignedTaskCollection.insertOne(userTask);
+          }
+        }
+
+        res.send({ success: true, message: "Tasks assigned successfully" });
+      } catch (error) {
+        console.error("Error assigning tasks:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
     });
   } finally {
     // Ensures that the client will close when you finish/error
