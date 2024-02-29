@@ -55,6 +55,8 @@ const client = new MongoClient(uri, {
 async function run() {
   const taskCollection = client.db("taskDb").collection("tasks");
   const listCollection = client.db("taskDb").collection("lists");
+  const userCollection = client.db("taskDb").collection("users");
+
   try {
     // jwt token
     app.post("/jwt", logger, async (req, res) => {
@@ -125,6 +127,25 @@ async function run() {
           .status(500)
           .send({ success: false, message: "Internal server error" });
       }
+    });
+
+    // user related api
+    app.get("/users", async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      // insert email if user doesnt exists:
+      // you can do this many ways (1. email unique, 2. upsert 3. simple checking)
+      const query = { email: user.email };
+      const existingUser = await userCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: "user already exists", insertedId: null });
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
     });
   } finally {
     // Ensures that the client will close when you finish/error
