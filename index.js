@@ -189,7 +189,7 @@ async function run() {
     });
 
     app.post("/assign-tasks", async (req, res) => {
-      const { selectedTaskDetails, selectedUsers } = req.body;
+      const { selectedTaskDetails, selectedUsers, senderEmail } = req.body; // Include senderEmail here
 
       try {
         // Loop through selected users
@@ -205,6 +205,7 @@ async function run() {
               dueDate: task.dueDate,
               priority: task.priority,
               category: task.category,
+              senderEmail: senderEmail, // Include senderEmail here
             };
 
             // Insert the task for this user
