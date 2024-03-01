@@ -10,7 +10,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 // middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: "*", // Update this to your frontend URL in production
     credentials: true,
   })
 );
@@ -138,6 +138,12 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const result = await userCollection.find({ email: email }).toArray();
+      res.send(result);
+    });
+
     app.post("/users", async (req, res) => {
       const user = req.body;
       // insert email if user doesnt exists:
@@ -216,6 +222,38 @@ async function run() {
         res.send({ success: true, message: "Tasks assigned successfully" });
       } catch (error) {
         console.error("Error assigning tasks:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
+    // task related api
+    app.get("/assign-tasks", async (req, res) => {
+      const result = await assignedTaskCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post("/assign-tasks/:taskId", async (req, res) => {
+      const taskId = req.params.taskId;
+      const { status } = req.body;
+
+      try {
+        const result = await assignedTaskCollection.updateOne(
+          { _id: new ObjectId(taskId) }, // Match by _id
+          { $set: { status: status || null } }, // Set status to null if not provided
+          { upsert: true } // Create the document if it doesn't exist
+        );
+
+        if (result.modifiedCount === 1 || result.upsertedCount === 1) {
+          res.send({ success: true, message: "Status updated successfully" });
+        } else {
+          res.send({
+            success: false,
+            message: "No task found with the provided ID",
+          });
+        }
+      } catch (error) {
+        console.error("Error updating status:", error);
         res
           .status(500)
           .send({ success: false, message: "Internal server error" });
