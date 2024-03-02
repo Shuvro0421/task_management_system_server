@@ -100,6 +100,32 @@ async function run() {
       res.send(result);
     });
 
+    app.put("/tasks/:taskId", async (req, res) => {
+      const taskId = req.params.taskId;
+      const updatedTask = req.body; // New task data from the request body
+
+      try {
+        const result = await taskCollection.updateOne(
+          { _id: new ObjectId(taskId) },
+          { $set: updatedTask } // Update task with new data
+        );
+
+        if (result.modifiedCount === 1) {
+          res.send({ success: true, message: "Task updated successfully" });
+        } else {
+          res.send({
+            success: false,
+            message: "No task found with the provided ID",
+          });
+        }
+      } catch (error) {
+        console.error("Error updating task:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
+
     app.post("/tasks/:taskId/category", async (req, res) => {
       const taskId = req.params.taskId;
       const { category } = req.body;
@@ -232,7 +258,6 @@ async function run() {
       const result = await assignedTaskCollection.find().toArray();
       res.send(result);
     });
-
 
     app.post("/assign-tasks/:taskId", async (req, res) => {
       const taskId = req.params.taskId;
