@@ -8,15 +8,7 @@ const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 // middleware
-app.use(
-  cors({
-    origin: [
-      "https://task-management-system-auth.web.app/",
-      "https://task-management-system-auth.firebaseapp.com/",
-    ], // Update this to your frontend URL in production
-    credentials: true,
-  })
-);
+app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
@@ -36,7 +28,7 @@ const verifyToken = (req, res, next) => {
   if (!token) {
     return res.status(401).send({ message: "unauthorized access" });
   }
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+  jwt.verify(token, 'c2e09a2918d40d2cc825b431e46b825009bd53a196c26054d79c8cae770cc9136fdbc17bd14390204fc9b66aad0ec2e99bcc44c05924d6bcd36ba5bbcb609cd0', (err, decoded) => {
     if (err) {
       return res.status(401).send({ message: "unauthorized access" });
     }
@@ -67,9 +59,13 @@ async function run() {
     // jwt token
     app.post("/jwt", logger, async (req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, 'c2e09a2918d40d2cc825b431e46b825009bd53a196c26054d79c8cae770cc9136fdbc17bd14390204fc9b66aad0ec2e99bcc44c05924d6bcd36ba5bbcb609cd0', {
-        expiresIn: "1h",
-      });
+      const token = jwt.sign(
+        user,
+        "c2e09a2918d40d2cc825b431e46b825009bd53a196c26054d79c8cae770cc9136fdbc17bd14390204fc9b66aad0ec2e99bcc44c05924d6bcd36ba5bbcb609cd0",
+        {
+          expiresIn: "1h",
+        }
+      );
 
       res
         .cookie("token", token, {
