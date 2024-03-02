@@ -11,9 +11,8 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 app.use(
   cors({
     origin: [
-        'https://task-management-system-auth.web.app/',
-        'https://task-management-system-auth.firebaseapp.com/',
-        
+      "https://task-management-system-auth.web.app/",
+      "https://task-management-system-auth.firebaseapp.com/",
     ], // Update this to your frontend URL in production
     credentials: true,
   })
@@ -45,7 +44,7 @@ const verifyToken = (req, res, next) => {
     next();
   });
 };
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.04lxrta.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://taskManagementSystem:YNGKFueSeyehnxUK@cluster0.04lxrta.mongodb.net/taskDb`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -68,7 +67,7 @@ async function run() {
     // jwt token
     app.post("/jwt", logger, async (req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+      const token = jwt.sign(user, 'c2e09a2918d40d2cc825b431e46b825009bd53a196c26054d79c8cae770cc9136fdbc17bd14390204fc9b66aad0ec2e99bcc44c05924d6bcd36ba5bbcb609cd0', {
         expiresIn: "1h",
       });
 
