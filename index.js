@@ -12,7 +12,8 @@ app.use(
   cors({
     origin: [
         'https://task-management-system-auth.web.app/',
-        'https://task-management-system-auth.firebaseapp.com/'
+        'https://task-management-system-auth.firebaseapp.com/',
+        
     ], // Update this to your frontend URL in production
     credentials: true,
   })
